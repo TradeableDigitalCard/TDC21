@@ -1,0 +1,8 @@
+version: "3.5"
+services:
+  blockchain:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    ports:
+      - 8545:8545
