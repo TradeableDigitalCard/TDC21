@@ -1,0 +1,23 @@
+version: "3.5"
+services:
+  blockchain:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    ports:
+      - "8545:8545"
+    networks:
+      - blockchain
+  scan:
+    image: carechain/eth-explorer
+    ports:
+      - "8000:8000"
+    environment:
+      - GETH_HOSTNAME=blockchain
+      - GETH_RPCPORT=8545
+    networks:
+      - blockchain
+
+networks:
+  blockchain:
+    name: blockchain
