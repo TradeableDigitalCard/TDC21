@@ -21,6 +21,18 @@ services:
     networks:
       - blockchain
 
+  tdc21:
+    build:
+      context: ./TDC21
+      dockerfile: Dockerfile
+    image: tdc21
+    depends_on:
+      - blockchain
+    volumes:
+      - ./TDC21/src:/app
+    networks:
+      - blockchain
+
 networks:
   blockchain:
     name: blockchain
