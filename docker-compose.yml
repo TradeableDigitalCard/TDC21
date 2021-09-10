@@ -8,13 +8,14 @@ services:
       - "8545:8545"
     networks:
       - blockchain
+    volumes:
+      - ./blockchain/data:/data
   scan:
-    image: carechain/eth-explorer
+    build:
+      context: ./blockchain
+      dockerfile: BlockExplorerDockerfile
     ports:
       - "8000:8000"
-    environment:
-      - GETH_HOSTNAME=blockchain
-      - GETH_RPCPORT=8545
     depends_on:
       - blockchain
     networks:
