@@ -8,6 +8,8 @@ services:
       - "8545:8545"
     networks:
       - blockchain
+    volumes:
+      - ./blockchain/data:/data
   scan:
     image: carechain/eth-explorer
     ports:
