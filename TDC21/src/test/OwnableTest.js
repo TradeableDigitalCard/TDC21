@@ -1,4 +1,5 @@
 const truffleAssert = require('truffle-assertions');
+require('chai').use(require('chai-as-promised')).should();
 
 const Ownable = artifacts.require("Ownable");
 
@@ -36,7 +37,7 @@ contract('Ownable', (accounts) => {
 
     describe('ownable', () => {
         let instance;
-        before(async () => {
+        beforeEach(async () => {
             instance = await Ownable.deployed();
         })
 
@@ -54,6 +55,18 @@ contract('Ownable', (accounts) => {
                 previousOwner: accounts[0],
                 newOwner: accounts[1]
             }, 'Contract should return the correct event.');
+        })
+
+        it('cannot transfer ownership if sender is not the owner', async () => {
+            assert.equal(await instance.owner(), accounts[1])
+
+            const err = 'VM Exception while processing transaction: revert'
+
+           await instance.transferOwnership(accounts[2], {
+                from: accounts[4]
+            }).should.be.rejectedWith(err);
+
+            assert.equal(await instance.owner(), accounts[1])
         })
 
     })

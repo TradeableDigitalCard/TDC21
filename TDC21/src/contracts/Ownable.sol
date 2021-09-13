@@ -15,7 +15,12 @@ contract Ownable is ERC173 {
         owner = msg.sender;
     }
 
-    function transferOwnership(address _newOwner) external {
+    modifier onlyOwner(){
+        require(owner == msg.sender);
+        _;
+    }
+
+    function transferOwnership(address _newOwner) external onlyOwner {
         address prevOwner = owner;
         owner = _newOwner;
         emit OwnershipTransferred(prevOwner, owner);
