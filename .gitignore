@@ -1,2 +1,3 @@
 blockchain/data
 **/build
+**/node_modules

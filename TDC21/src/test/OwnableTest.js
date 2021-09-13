@@ -35,7 +35,7 @@ contract('Ownable', (accounts) => {
 
     })
 
-    describe('ownable', () => {
+    describe('contract', () => {
         let instance;
         beforeEach(async () => {
             instance = await Ownable.deployed();
