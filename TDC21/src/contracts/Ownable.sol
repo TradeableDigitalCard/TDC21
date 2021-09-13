@@ -6,7 +6,6 @@ interface ERC173 {
     function transferOwnership(address _newOwner) external;
 }
 
-
 contract Ownable is ERC173 {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -17,6 +16,8 @@ contract Ownable is ERC173 {
     }
 
     function transferOwnership(address _newOwner) external {
+        address prevOwner = owner;
         owner = _newOwner;
+        emit OwnershipTransferred(prevOwner, owner);
     }
 }
