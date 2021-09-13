@@ -19,5 +19,23 @@ contract('Ownable', (accounts) => {
         })
 
     })
+
+    describe('ownable', () => {
+        let instance;
+        before(async () => {
+            instance = await Ownable.deployed();
+        })
+
+        it('is owned by first address', async () => {
+            assert.equal(await instance.owner(), accounts[0])
+        })
+
+        it('is transferred properly', async () => {
+            assert.equal(await instance.owner(), accounts[0])
+            await instance.transferOwnership(accounts[1])
+            assert.equal(await instance.owner(), accounts[1])
+        })
+    })
+
 })
 
