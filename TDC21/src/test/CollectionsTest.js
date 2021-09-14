@@ -135,8 +135,12 @@ contract('Collections', (accounts) => {
 
         it('cost is updated', async () => {
             assert.equal(await instance.cost(), CREATE_CONTRACT_COST)
-            await instance.updateCost(200, { from: accounts[0] });
+            let result = await instance.updateCost(200, { from: accounts[0] });
             assert.equal(await instance.cost(), 200)
+
+            event.emitted(result, 'CostUpdated', {
+                newCost: 200,
+            }, 'Contract should return the correct event.');
         })
 
         it('cant create collection if no enough ETH is provided', async () => {

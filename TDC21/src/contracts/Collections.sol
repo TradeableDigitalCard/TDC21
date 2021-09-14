@@ -5,6 +5,7 @@ import './Ownable.sol';
 contract Collections is Ownable {
     event AdminTransferred(uint256 collectionId, address prevAdmin, address newAdmin);
     event CollectionCreated(uint256 collectionId, address admin);
+    event CostUpdated(uint256 newCost);
 
     mapping (uint256 => address) public collections;
     uint256 public collectionsLength;
@@ -18,6 +19,7 @@ contract Collections is Ownable {
 
     function updateCost(uint256 _cost) external onlyOwner {
         cost = _cost;
+        emit CostUpdated(cost);
     }
 
     function createCollection() external payable returns (uint collectionID) {
