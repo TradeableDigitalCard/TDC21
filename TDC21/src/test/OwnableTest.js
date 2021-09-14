@@ -69,6 +69,17 @@ contract('Ownable', (accounts) => {
             assert.equal(await instance.owner(), accounts[1])
         })
 
+        it('cannot transfer ownership if new owner is 0x0', async () => {
+            assert.equal(await instance.owner(), accounts[1])
+
+            const err = 'VM Exception while processing transaction: revert'
+
+           await instance.transferOwnership('0x0000000000000000000000000000000000000000', {
+                from: accounts[1]
+            }).should.be.rejectedWith(err);
+
+            assert.equal(await instance.owner(), accounts[1])
+        })
     })
 
 })
