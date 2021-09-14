@@ -9,7 +9,7 @@ contract Collections is Ownable {
     mapping (uint256 => address) public collections;
     uint256 public collectionsLength;
 
-    uint256 cost = 100 wei;
+    uint256 public cost = 100 wei;
 
     modifier onlyAdmin(uint256 collectionId) {
         require(msg.sender == collections[collectionId]);

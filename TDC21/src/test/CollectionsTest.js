@@ -51,7 +51,7 @@ contract('Collections', (accounts) => {
             const err = 'VM Exception while processing transaction: revert'
 
             assert.equal(await instance.collectionsLength(), 0)
-            let resultCollection = await instance.createCollection().should.be.rejectedWith(err);
+            await instance.createCollection().should.be.rejectedWith(err);
             assert.equal(await instance.collectionsLength(), 0)
         })
 
@@ -59,7 +59,7 @@ contract('Collections', (accounts) => {
             const err = 'VM Exception while processing transaction: revert'
 
             assert.equal(await instance.collectionsLength(), 0)
-            let resultCollection = await instance.createCollection({ value: CREATE_CONTRACT_COST - 1 }).should.be.rejectedWith(err);
+            await instance.createCollection({ value: CREATE_CONTRACT_COST - 1 }).should.be.rejectedWith(err);
             assert.equal(await instance.collectionsLength(), 0)
         })
 
@@ -99,7 +99,7 @@ contract('Collections', (accounts) => {
 
         it('cant transfer admin if not admin', async () => {
             const err = 'VM Exception while processing transaction: revert'
-            const result = await instance.transferAdmin(1, accounts[4], { from: accounts[0] }).should.be.rejectedWith(err);
+            await instance.transferAdmin(1, accounts[4], { from: accounts[0] }).should.be.rejectedWith(err);
         })
 
         it('transfer admin', async () => {
@@ -124,6 +124,26 @@ contract('Collections', (accounts) => {
                 prevAdmin: accounts[4],
                 newAdmin: '0x0000000000000000000000000000000000000000',
             }, 'Contract should return the correct event.');
+        })
+
+        it('cant update cost if not owner', async () => {
+            assert.equal(await instance.cost(), CREATE_CONTRACT_COST)
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.updateCost(200, { from: accounts[4] }).should.be.rejectedWith(err);
+            assert.equal(await instance.cost(), CREATE_CONTRACT_COST)
+        })
+
+        it('cost is updated', async () => {
+            assert.equal(await instance.cost(), CREATE_CONTRACT_COST)
+            await instance.updateCost(200, { from: accounts[0] });
+            assert.equal(await instance.cost(), 200)
+        })
+
+        it('cant create collection if no enough ETH is provided', async () => {
+            const err = 'VM Exception while processing transaction: revert'
+            assert.equal(await instance.collectionsLength(), 2)
+            await instance.createCollection({ value: 199 }).should.be.rejectedWith(err);
+            assert.equal(await instance.collectionsLength(), 2)
         })
     })
 })
