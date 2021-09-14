@@ -28,6 +28,7 @@ contract Collections {
     event CollectionCreated(uint256 collectionId, address admin);
 
     mapping (uint256 => address) public collections;
+    uint256 public collectionsLength;
 
     modifier onlyAdmin(uint256 collectionId) {
         require(msg.sender == collections[collectionId]);
@@ -36,6 +37,11 @@ contract Collections {
 
    // transferAdmin(collectionId, newAdmin) emit AdminTransferred
 
-   // createCollection() payable, ret collectionID emit CollectionCreated
+    function createCollection() external returns (uint collectionID) {
+        collections[collectionsLength] = msg.sender;
+        emit CollectionCreated(collectionsLength, msg.sender);
+        collectionsLength++;
+        return collectionsLength - 1;
+    }
 
 }
