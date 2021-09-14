@@ -44,7 +44,7 @@ contract('Collections', (accounts) => {
             assert.equal(await instance.collections(0), 0x0000000000000000000000000000000000000000)
         })
 
-        it('create collection and check admin', async () => {
+        it('create collection and check admin and length', async () => {
             assert.equal(await instance.collectionsLength(), 0)
 
             let resultCollection = await instance.createCollection();
@@ -54,6 +54,21 @@ contract('Collections', (accounts) => {
             event.emitted(resultCollection, 'CollectionCreated', {
                 collectionId: 0,
                 admin: accounts[0]
+            }, 'Contract should return the correct event.');
+        })
+
+        it('create another collection and check admin and length', async () => {
+            assert.equal(await instance.collectionsLength(), 1)
+
+            let resultCollection = await instance.createCollection({
+                from: accounts[1]
+            });
+
+            assert.equal(await instance.collections(1), accounts[1])
+            assert.equal(await instance.collectionsLength(), 2)
+            event.emitted(resultCollection, 'CollectionCreated', {
+                collectionId: 1,
+                admin: accounts[1]
             }, 'Contract should return the correct event.');
         })
     })
