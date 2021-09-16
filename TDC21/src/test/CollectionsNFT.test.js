@@ -1,22 +1,9 @@
-const truffleAssert = require('truffle-assertions')
-const {eventEmitted} = require("truffle-assertions")
 require('chai').use(require('chai-as-promised')).should()
 
+const { Emitted } = require('./helpers/events.js')
+const { ethBalance, weiBalance } = require('./helpers/balance.js')
+
 const CollectionsNFT = artifacts.require("CollectionsNFT")
-
-const ethBalance = async (add) => web3.utils.fromWei(await web3.eth.getBalance(add), 'ether');
-
-const event = {
-    emitted: (result, name, obj, msg = '') => truffleAssert.eventEmitted(result, name, eventFilter(obj), msg),
-    notEmitted: (result, name, obj, msg = '') => truffleAssert.eventNotEmitted(result, name, eventFilter(obj), msg),
-}
-const eventFilter = obj => !obj ? null : (ev) => {
-    const k = Object.keys(obj)
-    for (let i = 0; i < k.length; i++) {
-        if (ev[k[i]] != obj[k[i]]) return false
-    }
-    return true
-}
 
 const CREATE_CONTRACT_COST = 100
 
@@ -36,6 +23,12 @@ contract('CollectionsNFT', (accounts) => {
         })
     })
 
+    describe('balanceOf', () => {
+        it('initial balance is 0', async () => {
+            assert.equal(await instance.balanceOf(accounts[0]), 0)
+        })
+    })
+
     describe('mint', () => {
         it('error when no dinero amigo', async () => {
             const err = 'VM Exception while processing transaction: revert'
@@ -43,29 +36,24 @@ contract('CollectionsNFT', (accounts) => {
         });
 
         it('collection created', async () => {
-            assert.equal(await web3.eth.getBalance(instance.address), 0)
-            const result = await instance.createCollection("anUri", {value: 100})
-            assert.equal(await instance.balanceOf(accounts[0]), 1)
-            assert.equal(await web3.eth.getBalance(instance.address), 100)
+            const balance = await weiBalance(instance.address)
+            assert.equal(balance, 0)
 
-            event.emitted(result, 'CollectionCreated', {
+            const result = await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
+
+            //TODO assert.equal(await instance.tokenURI(0), 'anUri')
+            //TODO assert.equal(await instance.ownerOf(0), accounts[0])
+            assert.equal(await instance.balanceOf(accounts[0]), 1)
+            assert.equal(await weiBalance(instance.address), balance + CREATE_CONTRACT_COST)
+
+            Emitted(result, 'CollectionCreated', {
                 collectionId: 0,
                 owner: accounts[0]
             }, 'Contract should return the correct event.');
         })
 
         it('balance rises when a nft is created', async () => {
-            assert.equal(await instance.balanceOf(accounts[8]), 0)
-        })
-    })
-
-    describe('balanceOf', () => {
-        it('initial balance is 0', async () => {
-            assert.equal(await instance.balanceOf(accounts[8]), 0)
-        })
-
-        it('balance rises when a nft is created', async () => {
-            assert.equal(await instance.balanceOf(accounts[8]), 0)
+            assert.equal(await instance.balanceOf(accounts[0]), 1)
         })
     })
 
@@ -82,7 +70,7 @@ contract('CollectionsNFT', (accounts) => {
             let result = await instance.updatePrice(200, { from: accounts[0] });
             assert.equal(await instance.price(), 200)
 
-            event.emitted(result, 'PriceUpdated', {
+            Emitted(result, 'PriceUpdated', {
                 newPrice: 200,
             }, 'Contract should return the correct event.');
         })

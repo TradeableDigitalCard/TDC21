@@ -1,21 +1,9 @@
-const truffleAssert = require('truffle-assertions');
 require('chai').use(require('chai-as-promised')).should();
 
 const Ownable = artifacts.require("Ownable");
 
-const ethBalance = async (add) => web3.utils.fromWei(await web3.eth.getBalance(add), 'ether');
-
-const event = {
-    emitted: (result, name, obj, msg = '') => truffleAssert.eventEmitted(result, name, eventFilter(obj), msg),
-    notEmitted: (result, name, obj, msg = '') => truffleAssert.eventNotEmitted(result, name, eventFilter(obj), msg),
-}
-const eventFilter = obj => !obj ? null : (ev) => {
-    const k = Object.keys(obj)
-    for (let i = 0; i < k.length; i++) {
-        if (ev[k[i]] != obj[k[i]]) return false
-    }
-    return true
-}
+const { Emitted } = require('./helpers/events.js')
+const { ethBalance } = require('./helpers/balance.js')
 
 contract('Ownable', (accounts) => {
     describe('deployment', () => {
@@ -51,7 +39,7 @@ contract('Ownable', (accounts) => {
             let resultAddress = await instance.transferOwnership(accounts[1])
             assert.equal(await instance.owner(), accounts[1])
 
-            event.emitted(resultAddress, 'OwnershipTransferred', {
+            Emitted(resultAddress, 'OwnershipTransferred', {
                 previousOwner: accounts[0],
                 newOwner: accounts[1]
             }, 'Contract should return the correct event.');

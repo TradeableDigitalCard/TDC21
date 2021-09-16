@@ -1,23 +1,9 @@
-const truffleAssert = require('truffle-assertions');
-const {eventEmitted} = require("truffle-assertions");
 require('chai').use(require('chai-as-promised')).should();
 
+const { Emitted } = require('./helpers/events.js')
+const { ethBalance, weiBalance } = require('./helpers/balance.js')
+
 const Collections = artifacts.require("Collections");
-
-const ethBalance = async (add) => web3.utils.fromWei(await web3.eth.getBalance(add), 'ether');
-
-const event = {
-    emitted: (result, name, obj, msg = '') => truffleAssert.eventEmitted(result, name, eventFilter(obj), msg),
-    notEmitted: (result, name, obj, msg = '') => truffleAssert.eventNotEmitted(result, name, eventFilter(obj), msg),
-}
-const eventFilter = obj => !obj ? null : (ev) => {
-    const k = Object.keys(obj)
-    for (let i = 0; i < k.length; i++) {
-        if (ev[k[i]] != obj[k[i]]) return false
-    }
-    return true
-}
-
 
 const CREATE_CONTRACT_COST = 100
 
@@ -64,7 +50,7 @@ contract('Collections', (accounts) => {
         })
 
         it('create collection and check admin and length', async () => {
-            const balance = +(await web3.eth.getBalance(instance.address))
+            const balance = await weiBalance(instance.address)
 
             assert.equal(await instance.collectionsLength(), 0)
 
@@ -72,10 +58,10 @@ contract('Collections', (accounts) => {
 
             assert.equal(await instance.collections(0), accounts[0])
 
-            assert.equal(balance + CREATE_CONTRACT_COST, await web3.eth.getBalance(instance.address))
+            assert.equal(balance + CREATE_CONTRACT_COST, await weiBalance(instance.address))
 
             assert.equal(await instance.collectionsLength(), 1)
-            event.emitted(resultCollection, 'CollectionCreated', {
+            Emitted(resultCollection, 'CollectionCreated', {
                 collectionId: 0,
                 admin: accounts[0]
             }, 'Contract should return the correct event.');
@@ -91,7 +77,7 @@ contract('Collections', (accounts) => {
 
             assert.equal(await instance.collections(1), accounts[1])
             assert.equal(await instance.collectionsLength(), 2)
-            event.emitted(resultCollection, 'CollectionCreated', {
+            Emitted(resultCollection, 'CollectionCreated', {
                 collectionId: 1,
                 admin: accounts[1]
             }, 'Contract should return the correct event.');
@@ -107,7 +93,7 @@ contract('Collections', (accounts) => {
             const result = await instance.transferAdmin(0, accounts[4], { from: accounts[0] })
             assert.equal(await instance.collections(0), accounts[4])
 
-            event.emitted(result, 'AdminTransferred', {
+            Emitted(result, 'AdminTransferred', {
                 collectionId: 0,
                 prevAdmin: accounts[0],
                 newAdmin: accounts[4],
@@ -119,7 +105,7 @@ contract('Collections', (accounts) => {
             const result = await instance.transferAdmin(0, '0x0000000000000000000000000000000000000000', { from: accounts[4] })
             assert.equal(await instance.collections(0), '0x0000000000000000000000000000000000000000')
 
-            event.emitted(result, 'AdminTransferred', {
+            Emitted(result, 'AdminTransferred', {
                 collectionId: 0,
                 prevAdmin: accounts[4],
                 newAdmin: '0x0000000000000000000000000000000000000000',
@@ -138,7 +124,7 @@ contract('Collections', (accounts) => {
             let result = await instance.updateCost(200, { from: accounts[0] });
             assert.equal(await instance.cost(), 200)
 
-            event.emitted(result, 'CostUpdated', {
+            Emitted(result, 'CostUpdated', {
                 newCost: 200,
             }, 'Contract should return the correct event.');
         })

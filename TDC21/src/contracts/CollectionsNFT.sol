@@ -1,15 +1,13 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import './Ownable.sol';
-//import "../interfaces/ERC721.sol";
 import './Priced.sol';
 
-contract CollectionsNFT is Ownable, Priced
-//, ERC721
-{
+contract CollectionsNFT is Ownable, Priced {
+
     event CollectionCreated(uint256 collectionId, address owner);
 
-    mapping (address => uint256) public balanceOf  ;
+    mapping (address => uint256) public balanceOf;
 
     struct Collection{
         address owner;
