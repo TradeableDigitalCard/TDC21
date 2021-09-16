@@ -43,6 +43,11 @@ module.exports = {
           gas: "4500000",
           gasPrice: "0",
       },
+      local: {
+          host: "blockchain",
+          port: 8545,
+          network_id: "*",
+      },
 
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
