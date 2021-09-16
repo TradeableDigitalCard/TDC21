@@ -1,8 +1,8 @@
-const truffleAssert = require('truffle-assertions');
-const {eventEmitted} = require("truffle-assertions");
-require('chai').use(require('chai-as-promised')).should();
+const truffleAssert = require('truffle-assertions')
+const {eventEmitted} = require("truffle-assertions")
+require('chai').use(require('chai-as-promised')).should()
 
-const CollectionsNFT = artifacts.require("CollectionsNFT");
+const CollectionsNFT = artifacts.require("CollectionsNFT")
 
 const ethBalance = async (add) => web3.utils.fromWei(await web3.eth.getBalance(add), 'ether');
 
@@ -21,12 +21,12 @@ const eventFilter = obj => !obj ? null : (ev) => {
 const CREATE_CONTRACT_COST = 100
 
 contract('CollectionsNFT', (accounts) => {
-    describe('deployment', () => {
-        let instance;
-        before(async () => {
-            instance = await CollectionsNFT.deployed();
-        })
+    let instance;
+    beforeEach(async () => {
+        instance = await CollectionsNFT.deployed();
+    })
 
+    describe('deployment', () => {
         it('deploys successfully', async () => {
             assert.notEqual(instance.address, '')
             assert.notEqual(instance.address, 0x0)
@@ -37,14 +37,16 @@ contract('CollectionsNFT', (accounts) => {
     })
 
     describe('mint', () => {
-        let instance;
-        beforeEach(async () => {
-            instance = await CollectionsNFT.deployed();
-        })
+        it('error when no dinero amigo', async () => {
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.createCollection("anUri").should.be.rejectedWith(err)
+        });
 
         it('collection created', async () => {
-            const result = await instance.createCollection("anUri");
+            assert.equal(await web3.eth.getBalance(instance.address), 0)
+            const result = await instance.createCollection("anUri", {value: 100})
             assert.equal(await instance.balanceOf(accounts[0]), 1)
+            assert.equal(await web3.eth.getBalance(instance.address), 100)
 
             event.emitted(result, 'CollectionCreated', {
                 collectionId: 0,
@@ -58,11 +60,6 @@ contract('CollectionsNFT', (accounts) => {
     })
 
     describe('balanceOf', () => {
-        let instance;
-        beforeEach(async () => {
-            instance = await CollectionsNFT.deployed();
-        })
-
         it('initial balance is 0', async () => {
             assert.equal(await instance.balanceOf(accounts[8]), 0)
         })
@@ -71,6 +68,25 @@ contract('CollectionsNFT', (accounts) => {
             assert.equal(await instance.balanceOf(accounts[8]), 0)
         })
     })
+
+    describe('cost', () => {
+        it('cant update cost if not owner', async () => {
+            assert.equal(await instance.price(), CREATE_CONTRACT_COST)
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.updatePrice(200, { from: accounts[4] }).should.be.rejectedWith(err);
+            assert.equal(await instance.price(), CREATE_CONTRACT_COST)
+        })
+
+        it('cost is updated', async () => {
+            assert.equal(await instance.price(), CREATE_CONTRACT_COST)
+            let result = await instance.updatePrice(200, { from: accounts[0] });
+            assert.equal(await instance.price(), 200)
+
+            event.emitted(result, 'PriceUpdated', {
+                newPrice: 200,
+            }, 'Contract should return the correct event.');
+        })
+    });
     //
     // describe('ownerOf', () => {
     //     let instance;
