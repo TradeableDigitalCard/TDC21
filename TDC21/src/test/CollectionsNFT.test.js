@@ -2,6 +2,7 @@ require('chai').use(require('chai-as-promised')).should()
 
 const { Emitted } = require('./helpers/events.js')
 const { ethBalance, weiBalance } = require('./helpers/balance.js')
+const { assert } = require('chai')
 
 const CollectionsNFT = artifacts.require("CollectionsNFT")
 
@@ -94,12 +95,8 @@ contract('CollectionsNFT', (accounts) => {
         })
 
         it('Should throw if sender is not owner or approved', async () => {
-        })
-
-        it('Approve if sender is not owner but is approved', async () => {
-        })
-
-        it('Approved that approves losses approval', async () => {
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.approve(accounts[1], 0, { from: accounts[7] }).should.be.rejectedWith(err)
         })
 
         it('Approve collection as owner and getApproved', async () => {
@@ -115,7 +112,58 @@ contract('CollectionsNFT', (accounts) => {
             assert.equal(await instance.getApproved(0), accounts[1])
         })
 
+        it('Approve if sender is not owner but is approved', async () => {
+            const result = await instance.approve(accounts[2], 0, {from: accounts[1]})
+            Emitted(result, 'Approval', {
+                _owner: accounts[0],
+                _approved: accounts[2],
+                _tokenId: 0,
+            }, 'Contract should return the correct event.');
+            assert.equal(await instance.getApproved(0), accounts[2])
+        })
+
+        it('Approved that approves losses approval', async () => {
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.approve(accounts[2], 0, {from: accounts[1]}).should.be.rejectedWith(err)
+        })
+
         it('Owner that approved can change approved wallet', async () => {
+            const result = await instance.approve(accounts[3], 0, {from: accounts[0]})
+            Emitted(result, 'Approval', {
+                _owner: accounts[0],
+                _approved: accounts[3],
+                _tokenId: 0,
+            }, 'Contract should return the correct event.');
+            assert.equal(await instance.getApproved(0), accounts[3])
+        })
+
+        describe('ApprovalForAll tests', () => {
+            it('account[2] is not an operator for account[1]', async () => {
+                const result = await instance.isApprovedForAll(accounts[1], accounts[2]);
+                assert.equal(result, false);
+            })
+
+            it('approve an operator', async () => {
+                const result = await instance.setApprovalForAll(accounts[2], true, {from: accounts[1]})
+                Emitted(result, 'ApprovalForAll', {
+                    _owner: accounts[1],
+                    _operator: accounts[2],
+                    _approved: true,
+                }, 'Contract should return the correct event.');
+                
+                assert.equal(await instance.isApprovedForAll(accounts[1], accounts[2]), true);
+            })
+
+            it('revoke operator', async () => {
+                const result = await instance.setApprovalForAll(accounts[2], false, {from: accounts[1]})
+                Emitted(result, 'ApprovalForAll', {
+                    _owner: accounts[1],
+                    _operator: accounts[2],
+                    _approved: false,
+                }, 'Contract should return the correct event.');
+                
+                assert.equal(await instance.isApprovedForAll(accounts[1], accounts[2]), false);
+            })
         })
     })
 })

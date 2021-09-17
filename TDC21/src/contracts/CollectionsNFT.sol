@@ -6,6 +6,7 @@ import "../interfaces/ERC721Metadata.sol";
 
 contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
+    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
 
     event CollectionCreated(uint256 collectionId, address owner);
 
@@ -37,10 +38,11 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
         return collections[_tokenId].owner;
     }
 
-
-    // APPROVAL
+    // APPROVAL SECTION
 
     mapping (uint256 => address) approved;
+    // owner => operator list
+    mapping (address => mapping(address => bool)) approvedOperators;
 
     function approve(address _approved, uint256 _tokenId) external payable {
         require(msg.sender == collections[_tokenId].owner || msg.sender == approved[_tokenId]);
@@ -53,21 +55,14 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
         return approved[_tokenId];
     }
 
+    function setApprovalForAll(address _operator, bool _approved) external payable {
+        approvedOperators[msg.sender][_operator] = _approved;
+        emit ApprovalForAll(msg.sender, _operator, _approved);
+    }
 
-
-    /// @notice Enable or disable approval for a third party ("operator") to manage
-    ///  all of `msg.sender`'s assets
-    /// @dev Emits the ApprovalForAll event. The contract MUST allow
-    ///  multiple operators per owner.
-    /// @param _operator Address to add to the set of authorized operators
-    /// @param _approved True if the operator is approved, false to revoke approval
-    // function setApprovalForAll(address _operator, bool _approved) external;
-
-    /// @notice Query if an address is an authorized operator for another address
-    /// @param _owner The address that owns the NFTs
-    /// @param _operator The address that acts on behalf of the owner
-    /// @return True if `_operator` is an approved operator for `_owner`, false otherwise
-    // function isApprovedForAll(address _owner, address _operator) external view returns (bool);
+    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
+        return approvedOperators[_owner][_operator];
+    }
 
 
     // ERC721 METADATA
