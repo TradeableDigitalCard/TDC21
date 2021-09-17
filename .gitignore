@@ -1,3 +1,5 @@
 blockchain/data
 **/build
 **/node_modules
+**/Migrations.json
+
