@@ -28,4 +28,14 @@ contract CollectionsNFT is Ownable, Priced {
         balanceOf[msg.sender] ++  ;
         emit CollectionCreated(collections.length -1, msg.sender);
     }
+
+    function ownerOf(uint256 _tokenId) external view returns (address) {
+        return collections[_tokenId].owner;
+    }
+
+
+    //METADATA
+    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+        return collections[_tokenId].uri;
+    }
 }

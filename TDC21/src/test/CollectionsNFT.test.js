@@ -29,7 +29,7 @@ contract('CollectionsNFT', (accounts) => {
         })
     })
 
-    describe('mint', () => {
+    describe('create collection', () => {
         it('error when no dinero amigo', async () => {
             const err = 'VM Exception while processing transaction: revert'
             await instance.createCollection("anUri").should.be.rejectedWith(err)
@@ -41,8 +41,8 @@ contract('CollectionsNFT', (accounts) => {
 
             const result = await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
 
-            //TODO assert.equal(await instance.tokenURI(0), 'anUri')
-            //TODO assert.equal(await instance.ownerOf(0), accounts[0])
+            assert.equal(await instance.tokenURI(0), 'anUri')
+            assert.equal(await instance.ownerOf(0), accounts[0])
             assert.equal(await instance.balanceOf(accounts[0]), 1)
             assert.equal(await weiBalance(instance.address), balance + CREATE_CONTRACT_COST)
 
