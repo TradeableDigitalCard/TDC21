@@ -30,7 +30,6 @@ contract('CollectionsNFT', (accounts) => {
         });
     })
 
-
     describe('balanceOf', () => {
         it('initial balance is 0', async () => {
             assert.equal(await instance.balanceOf(accounts[0]), 0)
@@ -83,81 +82,41 @@ contract('CollectionsNFT', (accounts) => {
             }, 'Contract should return the correct event.');
         })
     });
-    //
-    // describe('ownerOf', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    //
-    // describe('safeTransferFrom', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    //
-    // describe('transferFrom', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    // describe('approve', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    //
-    // describe('setApprovalForAll', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    //
-    // describe('getApproved', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
-    //
-    // describe('isApprovedForAll', () => {
-    //     let instance;
-    //     beforeEach(async () => {
-    //         instance = await Collections.deployed();
-    //     })
-    //
-    //     it('is transferred', async () => {
-    //
-    //     })
-    // })
+
+    describe('Approval', () => {
+        it('Should return 0x0 address if no approved yet', async () => {
+            assert.equal(await instance.getApproved(0), 0)
+        })
+
+        it('Should throw if NFT doesnt exist', async () => {
+            const err = 'VM Exception while processing transaction: revert'
+            await instance.getApproved(7438).should.be.rejectedWith(err);
+        })
+
+        it('Should throw if sender is not owner or approved', async () => {
+        })
+
+        it('Approve if sender is not owner but is approved', async () => {
+        })
+
+        it('Approved that approves losses approval', async () => {
+        })
+
+        it('Approve collection as owner and getApproved', async () => {
+            assert.equal(await instance.getApproved(0), 0)
+
+            const result = await instance.approve(accounts[1], 0)
+            Emitted(result, 'Approval', {
+                _owner: accounts[0],
+                _approved: accounts[1],
+                _tokenId: 0,
+            }, 'Contract should return the correct event.');
+
+            assert.equal(await instance.getApproved(0), accounts[1])
+        })
+
+        it('Owner that approved can change approved wallet', async () => {
+        })
+    })
 })
 
