@@ -2,12 +2,15 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import './Ownable.sol';
 import './Priced.sol';
+import "../interfaces/ERC721Metadata.sol";
 
-contract CollectionsNFT is Ownable, Priced {
+contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
 
     event CollectionCreated(uint256 collectionId, address owner);
 
     mapping (address => uint256) public balanceOf;
+    string public name;
+    string public symbol;
 
     struct Collection{
         address owner;
@@ -18,6 +21,8 @@ contract CollectionsNFT is Ownable, Priced {
 
     constructor() public {
         price = 100 wei;
+        name = "TDC21 Collections";
+        symbol = "TDC21C";
     }
 
     function createCollection(string calldata _uri) external payable cost(price) {

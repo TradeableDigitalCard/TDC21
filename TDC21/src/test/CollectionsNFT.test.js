@@ -23,6 +23,14 @@ contract('CollectionsNFT', (accounts) => {
         })
     })
 
+    describe('ERC721Metadata', () => {
+        it('check name and symbol', async () => {
+            assert.equal(await instance.symbol(), "TDC21C")
+            assert.equal(await instance.name(), "TDC21 Collections")
+        });
+    })
+
+
     describe('balanceOf', () => {
         it('initial balance is 0', async () => {
             assert.equal(await instance.balanceOf(accounts[0]), 0)
