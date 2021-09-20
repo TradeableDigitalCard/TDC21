@@ -178,15 +178,36 @@ contract('CollectionsNFT', (accounts) => {
                 })
 
                 it('test not owner, approved nor operator', async () => {
-                    await instance.safeTransferFrom(accounts[0], accounts[3], 1, {from: accounts[1]}).should.be.rejectedWith(errorMessage);
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 1, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
                 })
 
                 it('_to 0 should be rejected', async () => {
-                    await instance.safeTransferFrom(accounts[0], deadAddress, 1).should.be.rejectedWith(errorMessage);
+                    await instance.safeTransferFrom(accounts[0], deadAddress, 1).should.be.rejectedWith(errorMessage)
                 })
 
-                it('test is not operator', () => {
-                    
+                it('should reject when _from is not owner', async () => {
+                    await instance.safeTransferFrom(accounts[1], accounts[7], 1).should.be.rejectedWith(errorMessage)
+                })
+            })
+
+            describe('happy path', () => {
+                it('is safely transferred when owner is msg sender', async () => {
+                    assert.equal(await instance.balanceOf(accounts[0]), 2)
+                    assert.equal(await instance.balanceOf(accounts[3]), 0)
+                    await instance.approve(accounts[4], 1);
+
+                    let result = await instance.safeTransferFrom(accounts[0], accounts[3], 1);
+                    assert.equal(await instance.ownerOf(1), accounts[3])
+
+                    assert.equal(await instance.balanceOf(accounts[0]), 1)
+                    assert.equal(await instance.balanceOf(accounts[3]), 1)
+                    assert.equal(await instance.getApproved(1), 0)
+
+                    Emitted(result, 'Transfer', {
+                        _from: accounts[0],
+                        _to: accounts[3],
+                        _tokenId: 1,
+                    }, 'Contract should return the correct event.');
                 })
             })
         })
