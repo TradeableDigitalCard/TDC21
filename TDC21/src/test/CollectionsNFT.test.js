@@ -8,6 +8,9 @@ const CollectionsNFT = artifacts.require("CollectionsNFT")
 
 const CREATE_CONTRACT_COST = 100
 
+const errorMessage = 'VM Exception while processing transaction: revert'
+const deadAddress = "0x0000000000000000000000000000000000000000"
+
 contract('CollectionsNFT', (accounts) => {
     let instance;
     beforeEach(async () => {
@@ -39,8 +42,7 @@ contract('CollectionsNFT', (accounts) => {
 
     describe('create collection', () => {
         it('error when no dinero amigo', async () => {
-            const err = 'VM Exception while processing transaction: revert'
-            await instance.createCollection("anUri").should.be.rejectedWith(err)
+            await instance.createCollection("anUri").should.be.rejectedWith(errorMessage)
         });
 
         it('collection created', async () => {
@@ -68,8 +70,7 @@ contract('CollectionsNFT', (accounts) => {
     describe('cost', () => {
         it('cant update cost if not owner', async () => {
             assert.equal(await instance.price(), CREATE_CONTRACT_COST)
-            const err = 'VM Exception while processing transaction: revert'
-            await instance.updatePrice(200, { from: accounts[4] }).should.be.rejectedWith(err);
+            await instance.updatePrice(200, { from: accounts[4] }).should.be.rejectedWith(errorMessage);
             assert.equal(await instance.price(), CREATE_CONTRACT_COST)
         })
 
@@ -77,10 +78,12 @@ contract('CollectionsNFT', (accounts) => {
             assert.equal(await instance.price(), CREATE_CONTRACT_COST)
             let result = await instance.updatePrice(200, { from: accounts[0] });
             assert.equal(await instance.price(), 200)
-
+        
             Emitted(result, 'PriceUpdated', {
                 newPrice: 200,
             }, 'Contract should return the correct event.');
+
+            await instance.updatePrice(CREATE_CONTRACT_COST, { from: accounts[0] });
         })
     });
 
@@ -90,13 +93,11 @@ contract('CollectionsNFT', (accounts) => {
         })
 
         it('Should throw if NFT doesnt exist', async () => {
-            const err = 'VM Exception while processing transaction: revert'
-            await instance.getApproved(7438).should.be.rejectedWith(err);
+            await instance.getApproved(7438).should.be.rejectedWith(errorMessage);
         })
 
         it('Should throw if sender is not owner or approved', async () => {
-            const err = 'VM Exception while processing transaction: revert'
-            await instance.approve(accounts[1], 0, { from: accounts[7] }).should.be.rejectedWith(err)
+            await instance.approve(accounts[1], 0, { from: accounts[7] }).should.be.rejectedWith(errorMessage)
         })
 
         it('Approve collection as owner and getApproved', async () => {
@@ -123,8 +124,7 @@ contract('CollectionsNFT', (accounts) => {
         })
 
         it('Approved that approves losses approval', async () => {
-            const err = 'VM Exception while processing transaction: revert'
-            await instance.approve(accounts[2], 0, {from: accounts[1]}).should.be.rejectedWith(err)
+            await instance.approve(accounts[2], 0, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
         })
 
         it('Owner that approved can change approved wallet', async () => {
@@ -163,6 +163,31 @@ contract('CollectionsNFT', (accounts) => {
                 }, 'Contract should return the correct event.');
                 
                 assert.equal(await instance.isApprovedForAll(accounts[1], accounts[2]), false);
+            })
+        })
+
+        describe('safeTransferFrom tests', () => {
+
+            before(async () => {
+                await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
+            })
+
+            describe('test is not owner, approved or operator', () => {
+                it('nft doesnt exist', async () => {
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 5).should.be.rejectedWith(errorMessage);
+                })
+
+                it('test not owner, approved nor operator', async () => {
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 1, {from: accounts[1]}).should.be.rejectedWith(errorMessage);
+                })
+
+                it('_to 0 should be rejected', async () => {
+                    await instance.safeTransferFrom(accounts[0], deadAddress, 1).should.be.rejectedWith(errorMessage);
+                })
+
+                it('test is not operator', () => {
+                    
+                })
             })
         })
     })

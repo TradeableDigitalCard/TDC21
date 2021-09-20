@@ -96,16 +96,19 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
     function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable {
-        require( msg.sender == collections[_tokenId].owner || msg.sender == approved[_tokenId] || approvedOperators[collections[_tokenId].owner][msg.sender]);
-        require(_from == collections[_tokenId].owner);
-        require(_to != address(0x0));
         require(_tokenId < collections.length);
+        require( msg.sender == collections[_tokenId].owner 
+            || msg.sender == approved[_tokenId] 
+            || approvedOperators[collections[_tokenId].owner][msg.sender]);
 
-        collections[_tokenId].owner = _to;
-        balanceOf[_from]--;
-        balanceOf[_to]++;
+        require(_to != address(0x0));
+        // require(_from == collections[_tokenId].owner, "pollas");
 
-        emit Transfer(_from, _to, _tokenId);
+        // collections[_tokenId].owner = _to;
+        // balanceOf[_from]--;
+        // balanceOf[_to]++;
+
+        // emit Transfer(_from, _to, _tokenId);
     }
 
     /// @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE
