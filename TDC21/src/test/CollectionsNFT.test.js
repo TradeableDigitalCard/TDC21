@@ -14,7 +14,8 @@ const deadAddress = "0x0000000000000000000000000000000000000000"
 contract('CollectionsNFT', (accounts) => {
     let instance;
     beforeEach(async () => {
-        instance = await CollectionsNFT.deployed();
+        instance = await CollectionsNFT.new();
+        await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
     })
 
     describe('deployment', () => {
@@ -23,7 +24,7 @@ contract('CollectionsNFT', (accounts) => {
             assert.notEqual(instance.address, 0x0)
             assert.notEqual(instance.address, undefined)
             assert.notEqual(instance.address, null)
-            assert.equal(await ethBalance(instance.address), 0)
+            assert.equal(await weiBalance(instance.address), CREATE_CONTRACT_COST)
         })
     })
 
@@ -35,8 +36,8 @@ contract('CollectionsNFT', (accounts) => {
     })
 
     describe('balanceOf', () => {
-        it('initial balance is 0', async () => {
-            assert.equal(await instance.balanceOf(accounts[0]), 0)
+        it('initial balance is 1', async () => {
+            assert.equal(await instance.balanceOf(accounts[0]), 1)
         })
     })
 
@@ -47,23 +48,19 @@ contract('CollectionsNFT', (accounts) => {
 
         it('collection created', async () => {
             const balance = await weiBalance(instance.address)
-            assert.equal(balance, 0)
+            assert.equal(balance, CREATE_CONTRACT_COST)
 
-            const result = await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
+            const result = await instance.createCollection("anUri2", { value: CREATE_CONTRACT_COST })
 
-            assert.equal(await instance.tokenURI(0), 'anUri')
-            assert.equal(await instance.ownerOf(0), accounts[0])
-            assert.equal(await instance.balanceOf(accounts[0]), 1)
+            assert.equal(await instance.tokenURI(1), 'anUri2')
+            assert.equal(await instance.ownerOf(1), accounts[0])
+            assert.equal(await instance.balanceOf(accounts[0]), 2)
             assert.equal(await weiBalance(instance.address), balance + CREATE_CONTRACT_COST)
 
             Emitted(result, 'CollectionCreated', {
-                collectionId: 0,
+                collectionId: 1,
                 owner: accounts[0]
             }, 'Contract should return the correct event.');
-        })
-
-        it('balance rises when a nft is created', async () => {
-            assert.equal(await instance.balanceOf(accounts[0]), 1)
         })
     })
 
@@ -83,6 +80,7 @@ contract('CollectionsNFT', (accounts) => {
                 newPrice: 200,
             }, 'Contract should return the correct event.');
 
+            await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST }).should.be.rejectedWith(errorMessage)
             await instance.updatePrice(CREATE_CONTRACT_COST, { from: accounts[0] });
         })
     });
@@ -114,6 +112,7 @@ contract('CollectionsNFT', (accounts) => {
         })
 
         it('Approve if sender is not owner but is approved', async () => {
+            await instance.approve(accounts[1], 0)
             const result = await instance.approve(accounts[2], 0, {from: accounts[1]})
             Emitted(result, 'Approval', {
                 _owner: accounts[0],
@@ -167,144 +166,95 @@ contract('CollectionsNFT', (accounts) => {
         })
 
         describe('safeTransferFrom tests', () => {
-
-            before(async () => {
-                await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
-            })
-
             describe('test is not owner, approved or operator', () => {
 
                 it('test not owner, approved nor operator', async () => {
-                    await instance.safeTransferFrom(accounts[0], accounts[3], 1, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 0, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
                 })
                 it('_to 0 should be rejected', async () => {
-                    await instance.safeTransferFrom(accounts[0], deadAddress, 1).should.be.rejectedWith(errorMessage)
+                    await instance.safeTransferFrom(accounts[0], deadAddress, 0).should.be.rejectedWith(errorMessage)
                 })
                 it('nft doesnt exist', async () => {
                     await instance.safeTransferFrom(accounts[0], accounts[3], 5).should.be.rejectedWith(errorMessage);
                 })
                 it('should reject when _from is not owner', async () => {
-                    await instance.safeTransferFrom(accounts[1], accounts[7], 1).should.be.rejectedWith(errorMessage)
+                    await instance.safeTransferFrom(accounts[1], accounts[7], 0).should.be.rejectedWith(errorMessage)
                 })
             })
 
             describe('happy path', () => {
                 it('is safely transferred when owner is msg sender', async () => {
-                    assert.equal(await instance.balanceOf(accounts[0]), 2)
-                    assert.equal(await instance.balanceOf(accounts[3]), 0)
-                    await instance.approve(accounts[4], 1);
-
-                    const result = await instance.safeTransferFrom(accounts[0], accounts[3], 1);
-                    assert.equal(await instance.ownerOf(1), accounts[3])
-
                     assert.equal(await instance.balanceOf(accounts[0]), 1)
+                    assert.equal(await instance.balanceOf(accounts[3]), 0)
+                    await instance.approve(accounts[4], 0)
+
+                    const result = await instance.safeTransferFrom(accounts[0], accounts[3], 0);
+                    assert.equal(await instance.ownerOf(0), accounts[3])
+
+                    assert.equal(await instance.balanceOf(accounts[0]), 0)
                     assert.equal(await instance.balanceOf(accounts[3]), 1)
-                    assert.equal(await instance.getApproved(1), 0)
+                    assert.equal(await instance.getApproved(0), 0)
 
                     Emitted(result, 'Transfer', {
                         _from: accounts[0],
                         _to: accounts[3],
-                        _tokenId: 1,
+                        _tokenId: 0,
                     }, 'Contract should return the correct event.');
                 })
             })
         })
 
         describe('safeTransferFrom with DATA tests', () => {
-            //
-            // before(async () => {
-            //     await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
-            // })
-            //
-            // describe('test is not owner, approved or operator', () => {
-            //
-            //     it('test not owner, approved nor operator', async () => {
-            //         await instance.safeTransferFrom(accounts[0], accounts[3], 1, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
-            //     })
-            //     it('_to 0 should be rejected', async () => {
-            //         await instance.safeTransferFrom(accounts[0], deadAddress, 1).should.be.rejectedWith(errorMessage)
-            //     })
-            //     it('nft doesnt exist', async () => {
-            //         await instance.safeTransferFrom(accounts[0], accounts[3], 5).should.be.rejectedWith(errorMessage);
-            //     })
-            //     it('should reject when _from is not owner', async () => {
-            //         await instance.safeTransferFrom(accounts[1], accounts[7], 1).should.be.rejectedWith(errorMessage)
-            //     })
-            // })
-            //
-            // describe('happy path', () => {
-            //     it('is safely transferred when owner is msg sender', async () => {
-            //         assert.equal(await instance.balanceOf(accounts[0]), 2)
-            //         assert.equal(await instance.balanceOf(accounts[3]), 0)
-            //         await instance.approve(accounts[4], 1);
-            //
-            //         let result = await instance.safeTransferFrom(accounts[0], accounts[3], 1);
-            //         assert.equal(await instance.ownerOf(1), accounts[3])
-            //
-            //         assert.equal(await instance.balanceOf(accounts[0]), 1)
-            //         assert.equal(await instance.balanceOf(accounts[3]), 1)
-            //         assert.equal(await instance.getApproved(1), 0)
-            //
-            //         Emitted(result, 'Transfer', {
-            //             _from: accounts[0],
-            //             _to: accounts[3],
-            //             _tokenId: 1,
-            //         }, 'Contract should return the correct event.');
-            //     })
-            // })
+            // TODO
+            // ...
         })
 
         describe('transferFrom tests', () => {
-
-            before(async () => {
-                await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
-            })
-
             describe('test is not owner, approved or operator', () => {
 
                 it('test not owner, approved nor operator', async () => {
-                    await instance.safeTransferFrom(accounts[0], accounts[3], 2, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 0, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
                 })
 
                 it('nft doesnt exist', async () => {
                     await instance.safeTransferFrom(accounts[0], accounts[3], 5).should.be.rejectedWith(errorMessage);
                 })
                 it('should reject when _from is not owner', async () => {
-                    await instance.safeTransferFrom(accounts[1], accounts[7], 2).should.be.rejectedWith(errorMessage)
+                    await instance.safeTransferFrom(accounts[1], accounts[7], 0).should.be.rejectedWith(errorMessage)
                 })
             })
 
             describe('Transfer', () => {
                 it('is safely transferred when owner is msg sender', async () => {
-                    assert.equal(await instance.balanceOf(accounts[0]), 2)
+                    assert.equal(await instance.balanceOf(accounts[0]), 1)
                     assert.equal(await instance.balanceOf(accounts[5]), 0)
 
-                    const result = await instance.transferFrom(accounts[0], accounts[5], 2);
-                    assert.equal(await instance.ownerOf(2), accounts[5])
+                    const result = await instance.transferFrom(accounts[0], accounts[5], 0);
+                    assert.equal(await instance.ownerOf(0), accounts[5])
 
-                    assert.equal(await instance.balanceOf(accounts[0]), 1)
+                    assert.equal(await instance.balanceOf(accounts[0]), 0)
                     assert.equal(await instance.balanceOf(accounts[5]), 1)
 
                     Emitted(result, 'Transfer', {
                         _from: accounts[0],
                         _to: accounts[5],
-                        _tokenId: 2,
+                        _tokenId: 0,
                     }, 'Contract should return the correct event.');
                 })
                 
                 it('burn', async () => {
-                    assert.equal(await instance.balanceOf(accounts[5]), 1)
+                    assert.equal(await instance.balanceOf(accounts[0]), 1)
                     assert.equal(await instance.balanceOf('0x0000000000000000000000000000000000000000'), 0)
 
-                    const result = await instance.transferFrom(accounts[5], '0x0000000000000000000000000000000000000000', 2, { from: accounts[5]});
-                    assert.equal(await instance.ownerOf(2), 0)
+                    const result = await instance.transferFrom(accounts[0], '0x0000000000000000000000000000000000000000', 0);
+                    assert.equal(await instance.ownerOf(0), 0)
 
-                    assert.equal(await instance.balanceOf(accounts[5]), 0)
+                    assert.equal(await instance.balanceOf(accounts[0]), 0)
 
                     Emitted(result, 'Transfer', {
-                        _from: accounts[5],
+                        _from: accounts[0],
                         _to: 0,
-                        _tokenId: 2,
+                        _tokenId: 0,
                     }, 'Contract should return the correct event.');
                 })
             })
