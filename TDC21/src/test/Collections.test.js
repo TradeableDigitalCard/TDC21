@@ -4,17 +4,17 @@ const { Emitted } = require('./helpers/events.js')
 const { ethBalance, weiBalance } = require('./helpers/balance.js')
 const { assert } = require('chai')
 
-const CollectionsNFT = artifacts.require("CollectionsNFT")
+const Collections = artifacts.require("Collections")
 
 const CREATE_CONTRACT_COST = 100
 
 const errorMessage = 'VM Exception while processing transaction: revert'
 const deadAddress = "0x0000000000000000000000000000000000000000"
 
-contract('CollectionsNFT', (accounts) => {
+contract('Collections', (accounts) => {
     let instance;
     beforeEach(async () => {
-        instance = await CollectionsNFT.new();
+        instance = await Collections.new();
         await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
     })
 
