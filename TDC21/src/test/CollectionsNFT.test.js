@@ -76,7 +76,7 @@ contract('CollectionsNFT', (accounts) => {
 
         it('cost is updated', async () => {
             assert.equal(await instance.price(), CREATE_CONTRACT_COST)
-            let result = await instance.updatePrice(200, { from: accounts[0] });
+            const result = await instance.updatePrice(200, { from: accounts[0] });
             assert.equal(await instance.price(), 200)
         
             Emitted(result, 'PriceUpdated', {
@@ -194,7 +194,7 @@ contract('CollectionsNFT', (accounts) => {
                     assert.equal(await instance.balanceOf(accounts[3]), 0)
                     await instance.approve(accounts[4], 1);
 
-                    let result = await instance.safeTransferFrom(accounts[0], accounts[3], 1);
+                    const result = await instance.safeTransferFrom(accounts[0], accounts[3], 1);
                     assert.equal(await instance.ownerOf(1), accounts[3])
 
                     assert.equal(await instance.balanceOf(accounts[0]), 1)
@@ -252,6 +252,62 @@ contract('CollectionsNFT', (accounts) => {
             //         }, 'Contract should return the correct event.');
             //     })
             // })
+        })
+
+        describe('transferFrom tests', () => {
+
+            before(async () => {
+                await instance.createCollection("anUri", { value: CREATE_CONTRACT_COST })
+            })
+
+            describe('test is not owner, approved or operator', () => {
+
+                it('test not owner, approved nor operator', async () => {
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 2, {from: accounts[1]}).should.be.rejectedWith(errorMessage)
+                })
+
+                it('nft doesnt exist', async () => {
+                    await instance.safeTransferFrom(accounts[0], accounts[3], 5).should.be.rejectedWith(errorMessage);
+                })
+                it('should reject when _from is not owner', async () => {
+                    await instance.safeTransferFrom(accounts[1], accounts[7], 2).should.be.rejectedWith(errorMessage)
+                })
+            })
+
+            describe('Transfer', () => {
+                it('is safely transferred when owner is msg sender', async () => {
+                    assert.equal(await instance.balanceOf(accounts[0]), 2)
+                    assert.equal(await instance.balanceOf(accounts[5]), 0)
+
+                    const result = await instance.transferFrom(accounts[0], accounts[5], 2);
+                    assert.equal(await instance.ownerOf(2), accounts[5])
+
+                    assert.equal(await instance.balanceOf(accounts[0]), 1)
+                    assert.equal(await instance.balanceOf(accounts[5]), 1)
+
+                    Emitted(result, 'Transfer', {
+                        _from: accounts[0],
+                        _to: accounts[5],
+                        _tokenId: 2,
+                    }, 'Contract should return the correct event.');
+                })
+                
+                it('burn', async () => {
+                    assert.equal(await instance.balanceOf(accounts[5]), 1)
+                    assert.equal(await instance.balanceOf('0x0000000000000000000000000000000000000000'), 0)
+
+                    const result = await instance.transferFrom(accounts[5], '0x0000000000000000000000000000000000000000', 2, { from: accounts[5]});
+                    assert.equal(await instance.ownerOf(2), 0)
+
+                    assert.equal(await instance.balanceOf(accounts[5]), 0)
+
+                    Emitted(result, 'Transfer', {
+                        _from: accounts[5],
+                        _to: 0,
+                        _tokenId: 2,
+                    }, 'Contract should return the correct event.');
+                })
+            })
         })
     })
 })

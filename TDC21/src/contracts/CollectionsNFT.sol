@@ -69,6 +69,11 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
     // TRANSFER SECTION
     //=================
 
+    // TODO
+    /// When transfer is complete, this function  checks if `_to` is a smart contract (code size > 0).
+    /// If so, it calls  `onERC721Received` on `_to` and throws if the return value is not
+    ///  `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`.
+
     modifier transferValidator(address _from, address _to, uint256 _tokenId) {
         require(_tokenId < collections.length);
         require( msg.sender == collections[_tokenId].owner
@@ -86,9 +91,6 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
         emit Transfer(_from, _to, _tokenId);
     }
 
-    /// When transfer is complete, this function  checks if `_to` is a smart contract (code size > 0).
-    /// If so, it calls  `onERC721Received` on `_to` and throws if the return value is not
-    ///  `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`.
     function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata data) external payable transferValidator(_from, _to, _tokenId) {
         require(_to != address(0x0));
         _transfer(_from, _to, _tokenId, data);
@@ -99,23 +101,15 @@ contract CollectionsNFT is Ownable, Priced, ERC721Metadata {
         _transfer(_from, _to, _tokenId, "");
     }
 
-    /// @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE
-    ///  TO CONFIRM THAT `_to` IS CAPABLE OF RECEIVING NFTS OR ELSE
-    ///  THEY MAY BE PERMANENTLY LOST
-    /// @dev Throws unless `msg.sender` is the current owner, an authorized
-    ///  operator, or the approved address for this NFT. Throws if `_from` is
-    ///  not the current owner. Throws if `_to` is the zero address. Throws if
-    ///  `_tokenId` is not a valid NFT.
-    /// @param _from The current owner of the NFT
-    /// @param _to The new owner
-    /// @param _tokenId The NFT to transfer
-    function transferFrom(address _from, address _to, uint256 _tokenId) external payable {
-
+    function transferFrom(address _from, address _to, uint256 _tokenId) external payable transferValidator(_from, _to, _tokenId) {
+        _transfer(_from, _to, _tokenId, "");
     }
 
 
 
+    //=================
     // ERC721 METADATA
+    //=================
     string public name;
     string public symbol;
 
