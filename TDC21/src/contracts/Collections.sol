@@ -2,9 +2,10 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import './Ownable.sol';
 import './Priced.sol';
+import "../interfaces/ERC721.sol";
 import "../interfaces/ERC721Metadata.sol";
 
-contract Collections is Ownable, Priced, ERC721Metadata {
+contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
     event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
     event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
