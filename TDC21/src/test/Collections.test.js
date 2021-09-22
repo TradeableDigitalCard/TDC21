@@ -1,7 +1,8 @@
 require('chai').use(require('chai-as-promised')).should()
 
-const { Emitted } = require('./helpers/events.js')
-const { ethBalance, weiBalance } = require('./helpers/balance.js')
+const { Emitted } = require('./helpers/events')
+const { weiBalance } = require('./helpers/balance')
+const { deadAddress } = require('./utils/constants')
 const { assert } = require('chai')
 
 const Collections = artifacts.require("Collections")
@@ -9,9 +10,9 @@ const Collections = artifacts.require("Collections")
 const CREATE_CONTRACT_COST = 100
 
 const errorMessage = 'VM Exception while processing transaction: revert'
-const deadAddress = "0x0000000000000000000000000000000000000000"
 
 contract('Collections', (accounts) => {
+
     let instance;
     beforeEach(async () => {
         instance = await Collections.new();
@@ -244,9 +245,9 @@ contract('Collections', (accounts) => {
                 
                 it('burn', async () => {
                     assert.equal(await instance.balanceOf(accounts[0]), 1)
-                    assert.equal(await instance.balanceOf('0x0000000000000000000000000000000000000000'), 0)
+                    assert.equal(await instance.balanceOf(deadAddress), 0)
 
-                    const result = await instance.transferFrom(accounts[0], '0x0000000000000000000000000000000000000000', 0);
+                    const result = await instance.transferFrom(accounts[0], deadAddress, 0);
                     assert.equal(await instance.ownerOf(0), 0)
 
                     assert.equal(await instance.balanceOf(accounts[0]), 0)
