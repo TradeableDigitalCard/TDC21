@@ -17,11 +17,25 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
     }
 
     struct Collection{
+        uint256 id;
         address owner;
         string uri;
     }
 
     Collection[] collections;
+    
+    function collectionsOf(address _address) external view returns(Collection[] memory) {
+        Collection[] memory _collections = new Collection[](balances[_address]);
+        uint256 count;
+        for(uint256 i = 0; i < collections.length; i++) {
+            if (collections[i].owner == msg.sender) {
+               _collections[count] = collections[i];
+               count++;
+            }
+        }
+        
+        return _collections;
+    }
 
     constructor() {
         price = 100 wei;
@@ -31,6 +45,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
 
     function createCollection(string calldata _uri) external payable cost(price) {
         Collection memory collection;
+        collection.id = collections.length;
         collection.owner = msg.sender;
         collection.uri = _uri;
         collections.push(collection);
