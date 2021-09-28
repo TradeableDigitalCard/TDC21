@@ -7,12 +7,12 @@ import "../interfaces/ERC721.sol";
 import "../interfaces/ERC721Metadata.sol";
 
 contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
-   
+
     event CollectionCreated(uint256 collectionId, address owner);
 
     mapping (address => uint256) public balances;
-    
-    function balanceOf(address _address) external view returns(uint256){
+
+    function balanceOf(address _address) external override view returns(uint256){
         return balances[_address];
     }
 
@@ -23,7 +23,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
 
     Collection[] collections;
 
-    constructor() public {
+    constructor() {
         price = 100 wei;
         name = "TDC21 Collections";
         symbol = "TDC21C";
@@ -57,13 +57,13 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
         return approvedOperators[_owner][_operator];
     }
 
-    function approve(address _approved, uint256 _tokenId) external payable {
+    function approve(address _approved, uint256 _tokenId) override external payable {
         require(msg.sender == collections[_tokenId].owner || msg.sender == approved[_tokenId]);
         approved[_tokenId] = _approved;
         emit Approval(collections[_tokenId].owner, _approved, _tokenId);
     }
 
-    function getApproved(uint256 _tokenId) external view returns (address) {
+    function getApproved(uint256 _tokenId) override external view returns (address) {
         require(_tokenId < collections.length);
         return approved[_tokenId];
     }
@@ -94,29 +94,34 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
         emit Transfer(_from, _to, _tokenId);
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata data) external payable transferValidator(_from, _to, _tokenId) {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata data) override external payable transferValidator(_from, _to, _tokenId) {
         require(_to != address(0x0));
         _transfer(_from, _to, _tokenId, data);
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable transferValidator(_from, _to, _tokenId) {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) override external payable transferValidator(_from, _to, _tokenId) {
         require(_to != address(0x0));
         _transfer(_from, _to, _tokenId, "");
     }
 
-    function transferFrom(address _from, address _to, uint256 _tokenId) external payable transferValidator(_from, _to, _tokenId) {
+    function transferFrom(address _from, address _to, uint256 _tokenId) override external payable transferValidator(_from, _to, _tokenId) {
         _transfer(_from, _to, _tokenId, "");
     }
 
+
+    function withdraw(address _to) external onlyOwner {
+        address payable to = payable(msg.sender);
+        to.transfer(address(this).balance);
+    }
 
 
     //=================
     // ERC721 METADATA
     //=================
-    string public name;
-    string public symbol;
+    string override public name;
+    string override public symbol;
 
-    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+    function tokenURI(uint256 _tokenId) override external view returns (string memory) {
         return collections[_tokenId].uri;
     }
 }

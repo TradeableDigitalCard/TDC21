@@ -1,25 +1,29 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
 import '../interfaces/ERC173.sol';
 
 contract Ownable is ERC173 {
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    address public owner;
+    address contractOwner;
+    
+    function owner() external view override returns(address) {
+        return contractOwner;
+    }
 
-    constructor() public {
-        owner = msg.sender;
+    constructor() {
+        contractOwner = msg.sender;
     }
 
     modifier onlyOwner(){
-        require(owner == msg.sender);
+        require(contractOwner == msg.sender);
         _;
     }
 
-    function transferOwnership(address _newOwner) external onlyOwner {
+    function transferOwnership(address _newOwner) external override onlyOwner {
         require(_newOwner != address(0x0));
-        address prevOwner = owner;
-        owner = _newOwner;
-        emit OwnershipTransferred(prevOwner, owner);
+        address prevOwner = contractOwner;
+        contractOwner = _newOwner;
+        emit OwnershipTransferred(prevOwner, contractOwner);
     }
 }
