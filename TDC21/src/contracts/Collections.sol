@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
 import './Ownable.sol';
@@ -6,13 +7,14 @@ import "../interfaces/ERC721.sol";
 import "../interfaces/ERC721Metadata.sol";
 
 contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
-    event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
-    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
-    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
-
+   
     event CollectionCreated(uint256 collectionId, address owner);
 
-    mapping (address => uint256) public balanceOf;
+    mapping (address => uint256) public balances;
+    
+    function balanceOf(address _address) external view returns(uint256){
+        return balances[_address];
+    }
 
     struct Collection{
         address owner;
@@ -32,7 +34,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
         collection.owner = msg.sender;
         collection.uri = _uri;
         collections.push(collection);
-        balanceOf[msg.sender]++;
+        balances[msg.sender]++;
         emit CollectionCreated(collections.length -1, msg.sender);
     }
 
@@ -86,8 +88,8 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
     function _transfer(address _from, address _to, uint256 _tokenId, bytes memory data) private {
         require(_from == collections[_tokenId].owner);
         collections[_tokenId].owner = _to;
-        balanceOf[_from]--;
-        balanceOf[_to]++;
+        balances[_from]--;
+        balances[_to]++;
         approved[_tokenId] = address(0x0);
         emit Transfer(_from, _to, _tokenId);
     }
