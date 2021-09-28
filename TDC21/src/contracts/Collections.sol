@@ -38,7 +38,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
         emit CollectionCreated(collections.length -1, msg.sender);
     }
 
-    function ownerOf(uint256 _tokenId) external view returns (address) {
+    function ownerOf(uint256 _tokenId) external view override returns (address) {
         return collections[_tokenId].owner;
     }
 
@@ -48,12 +48,12 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
     mapping (address => mapping(address => bool)) approvedOperators;
     mapping (uint256 => address) approved;
 
-    function setApprovalForAll(address _operator, bool _approved) external payable {
+    function setApprovalForAll(address _operator, bool _approved) external override payable {
         approvedOperators[msg.sender][_operator] = _approved;
         emit ApprovalForAll(msg.sender, _operator, _approved);
     }
 
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
+    function isApprovedForAll(address _owner, address _operator) external override view returns (bool) {
         return approvedOperators[_owner][_operator];
     }
 
@@ -109,7 +109,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
     }
 
 
-    function withdraw(address _to) external onlyOwner {
+    function withdraw() external onlyOwner {
         address payable to = payable(msg.sender);
         to.transfer(address(this).balance);
     }
