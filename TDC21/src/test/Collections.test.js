@@ -261,5 +261,29 @@ contract('Collections', (accounts) => {
             })
         })
     })
+
+    describe('Withdraw', () => {
+        it('Should not withdraw if sender is not owner', async () => {
+            const balance = await weiBalance(instance.address)
+            await instance.withdraw({from: accounts[1]}).should.be.rejectedWith(errorMessage)
+            assert.equal(await weiBalance(instance.address), balance)
+        })
+
+        it('Should withdraw to owner', async () => {
+            const accountBalance = await weiBalance(accounts[0])
+            const balance = await weiBalance(instance.address)
+            const result = await instance.withdraw()
+            assert.equal(await weiBalance(instance.address), 0)
+            // assert.isOk((await weiBalance(accounts[0])) > accountBalance)
+        })
+    })
+
+    describe('collectionsOf', () => {
+        it('Should return empty if address doesnt exist', async () => {
+            // const result = await instance.collectionsOf(accounts[0])
+        })
+    })
+
+
 })
 
