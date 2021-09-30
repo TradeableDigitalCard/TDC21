@@ -28,7 +28,7 @@ contract Collections is Ownable, Priced, ERC721Metadata, ERC721 {
         Collection[] memory _collections = new Collection[](balances[_address]);
         uint256 count;
         for(uint256 i = 0; i < collections.length; i++) {
-            if (collections[i].owner == msg.sender) {
+            if (collections[i].owner == _address) {
                _collections[count] = collections[i];
                count++;
             }
