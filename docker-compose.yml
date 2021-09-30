@@ -33,6 +33,20 @@ services:
     networks:
       - blockchain
 
+  dapp:
+    build:
+      context: ./dApp
+      dockerfile: Dockerfile
+    image: dapp
+    ports:
+      - "9876:8000"
+    depends_on:
+      - blockchain
+    volumes:
+      - ./dApp/src:/app
+    networks:
+      - blockchain
+
 networks:
   blockchain:
     name: blockchain
