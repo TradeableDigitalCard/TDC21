@@ -261,5 +261,43 @@ contract('Collections', (accounts) => {
             })
         })
     })
+
+    describe('Withdraw', () => {
+        it('Should not withdraw if sender is not owner', async () => {
+            const balance = await weiBalance(instance.address)
+            await instance.withdraw({from: accounts[1]}).should.be.rejectedWith(errorMessage)
+            assert.equal(await weiBalance(instance.address), balance)
+        })
+
+        it('Should withdraw to owner', async () => {
+            const accountBalance = await weiBalance(accounts[0])
+            const balance = await weiBalance(instance.address)
+            const result = await instance.withdraw()
+            assert.equal(await weiBalance(instance.address), 0)
+            // assert.isOk((await weiBalance(accounts[0])) > accountBalance)
+        })
+    })
+
+    describe('collectionsOf', () => {
+        it('Should return empty if address doesnt have any collection', async () => {
+            const result = await instance.collectionsOf.call(accounts[8]);
+            assert.isOk(Array.isArray(result));
+            assert.equal(result.length, 0);
+        })
+
+        it('Should return array of collections if address have collections', async () => {
+            await instance.createCollection('collection2', { value: CREATE_CONTRACT_COST });
+            const result = await instance.collectionsOf.call(accounts[0]);
+            assert.isOk(Array.isArray(result));
+            assert.equal(result.length, 2);
+            result.forEach((r, i) => {
+                assert.equal(r.id, i);
+                assert.equal(r.owner, accounts[0]);
+                assert.equal(r.uri, ['anUri', 'collection2'][i]);
+            });
+        })
+    })
+
+
 })
 
