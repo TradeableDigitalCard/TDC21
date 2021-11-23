@@ -2,4 +2,7 @@ blockchain/data
 **/build
 **/node_modules
 **/Migrations.json
+**/artifacts
+**/.idea
+
 
